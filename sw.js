@@ -1,5 +1,5 @@
 // キンダイシフト：入れ物だけを保存する（データは保存しない）
-var CACHE = 'kindai-shift-v1';
+var CACHE = 'kindai-shift-v2';
 var FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }));
@@ -7,11 +7,12 @@ self.addEventListener('install', function (e) {
 });
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (ks) {
-    return Promise.all(ks.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); }));
+    return Promise.all(ks.filter(function (k) { return k.indexOf('kindai-shift-') === 0 && k !== CACHE; }).map(function (k) { return caches.delete(k); }));
   }));
   self.clients.claim();
 });
 self.addEventListener('fetch', function (e) {
   if (new URL(e.request.url).origin !== location.origin) return;
+  if (e.request.url.indexOf('/shift/kanri/') >= 0) return; // 「シフト管理」の入れ物は、そちらに任せる
   e.respondWith(fetch(e.request).catch(function () { return caches.match(e.request); }));
 });
